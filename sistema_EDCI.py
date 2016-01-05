@@ -69,18 +69,24 @@ def main():
 		e5 = Entry(separador)
 		e5.pack()
 		def registrar():
-			ide=e1.get()
-			name=e2.get()
-			last_name=e3.get()
-			phone=e4.get()
-			addr=e5.get()		
 			try:
-				cursor.execute("INSERT INTO USUARIO (cedula, Nombre, Apellido, telefono, dirección) VALUES ('" + ide + "', '" + name + "','" + last_name + "','" + phone + "','" + addr + "')")
-				cnn_db.commit()
-				print ("load Asley... next please XD")
-				showinfo("Notificación", "registrado con éxito")
+				ide=e1.get()
+				name=e2.get()
+				last_name=e3.get()
+				phone=e4.get()
+				addr=e5.get()
+				if (ide and name and last_name and phone and addr) != '':
+					cursor.execute("INSERT INTO USUARIO (cedula, Nombre, Apellido, telefono, dirección) VALUES ('" + ide + "', '" + name + "','" + last_name + "','" + phone + "','" + addr + "')")
+					cnn_db.commit()
+					print ("just ready!")
+					showinfo("Notificación", "registrado con éxito")
+				else:
+					showwarning("Importante","Todos los Datos del Usuario son necesarios para el registro")
+					print("incomplete data")	
+			except ValueError:
+				valid=False
 			except sqlite3.IntegrityError:
-				showerror("Notificación", "ya esta registrado en el sistema ")			
+				showerror("Notificación", "ya esta registrado en el sistema ")							
 			finally:
 				ventana1.destroy()							
 		boton_ingreso = Button(ventana1, text="Registrar", width=10,fg='white',bg='blue',command=registrar)
@@ -142,17 +148,27 @@ def main():
 				tkMessageBox.showinfo('Alerta del sistema','no encontrado')
 				print("not found")
 			cursor.execute("SELECT cedula, Nombre, Apellido, telefono, dirección from USUARIO WHERE cedula = '" + ide + "'")
-			resp = tkMessageBox.askquestion("Eliminar del Sistema","¿Seguro quiere eliminar?", icon="warning")
-			if resp=='no':
-				e1.delete(0, END)
-				print("not erase")					
+			for raw in cursor:
+				salida_eliminar=Label(ventana3,text=raw,font=('Ravie', 10),fg="blue",bg="white").pack(side="bottom")
+				marco=('''\n Datos de la Búsqueda''')
+				mostrar=Label(ventana3,text=marco,bg="white",fg="blue",font=('Ravie', 14)).pack(side="bottom")
+				print('ready for erase')
+			busca=cursor.execute("SELECT cedula, Nombre, Apellido, telefono, dirección from USUARIO WHERE cedula = '" + ide + "'")
+			comprueba=busca.fetchone()
+			if comprueba == None:
+				print('not found')
+				tkMessageBox.showerror('Alerta del sistema','No registrado')
 			else:
-				e1.delete(0, END)
-				cursor.execute("DELETE from USUARIO WHERE cedula = '" + ide + "'")
-				tkMessageBox.showinfo('Alerta del sistema','Eliminado con éxito')
-				cnn_db.commit()
-				print("erased")
-			ventana3.destroy()
+				resp = tkMessageBox.askquestion("Eliminar del Sistema","¿Seguro quiere eliminar?", icon="warning")
+				if resp=='no':
+					print("not erase")					
+				else:
+					e1.delete(0, END)
+					cursor.execute("DELETE from USUARIO WHERE cedula = '" + ide + "'")
+					showinfo('Alerta del sistema','Eliminado con éxito')
+					cnn_db.commit()
+					print("erased")
+				ventana3.destroy()
 			
 		def eliminando(event):
 			eliminar()				
